@@ -108,7 +108,7 @@ const state = reactive({
   queue: []
 });
 
-const rightDrawerOpen = ref(true);
+const rightDrawerOpen = ref(false);
 const name = ref("");
 const filter = ref("");
 
