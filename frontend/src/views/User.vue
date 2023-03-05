@@ -109,7 +109,7 @@ const state = reactive({
 });
 
 const rightDrawerOpen = ref(true);
-const name = ref("Kyle");
+const name = ref("");
 const filter = ref("");
 
 const filterSongs = computed(() => {
