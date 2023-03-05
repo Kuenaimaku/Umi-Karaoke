@@ -1,6 +1,6 @@
 <script setup>
 import {ref, reactive, onMounted, computed} from "vue";
-import { useQuasar } from 'quasar'
+import { useQuasar} from 'quasar'
 import queueHub from "../hub/QueueHub"
 
 import gsap from 'gsap'
@@ -65,16 +65,20 @@ onMounted(async () => {
   })
 
   queueHub.client.on("SongSetToNowPlaying", function(queueDTO) {
-    const previous = state.queue.find(q => q.status === 1);
-    const prevIndex = state.queue.indexOf(previous);
-    previous.status = 2;
-
     const nowPlaying = state.queue.find(q => q.id === queueDTO.id);
-    const nowPlayingIndex = state.queue.indexOf(nowPlaying);
-    nowPlaying.status = 1;
-    
-    state.queue[prevIndex] = previous;
-    state.queue[nowPlayingIndex] = nowPlaying
+    if(nowPlaying){
+      const nowPlayingIndex = state.queue.indexOf(nowPlaying);
+      nowPlaying.status = 1;
+      state.queue[nowPlayingIndex] = nowPlaying
+    }
+
+    const previous = state.queue.find(q => q.status === 1);
+    if (previous){
+      const prevIndex = state.queue.indexOf(previous);
+      previous.status = 2;
+      state.queue.splice(prevIndex, 1);
+    }
+
 
     $q.notify({
       message: `Now Playing: ${queueDTO.song.title} - ${queueDTO.song.artist}<br/><span class="text-caption">Requested By ${queueDTO.user}</span>`,
@@ -108,14 +112,20 @@ const state = reactive({
   queue: []
 });
 
+let n = $q.sessionStorage.getItem("name");
+
 const rightDrawerOpen = ref(false);
-const name = ref("");
+const name = ref(n ? n : "");
 const filter = ref("");
 
 const filterSongs = computed(() => {
   if(filter.value === "") {return state.songs}
   return state.songs.filter(function (song) { return song.title.toLowerCase().includes(filter.value.toLowerCase())})
 })
+
+function onUpdateName(value) {
+  $q.sessionStorage.set("name", value)
+}
 
 function onBeforeEnter(el) {
   el.style.opacity = 0
@@ -206,7 +216,7 @@ function toggleRightDrawer () {
 
         <q-img class="absolute-top" src="/drawer-header.png" style="height: 150px">
           <div class="absolute-top bg-transparent">
-            <q-input filled v-model="name" label="Name" bg-color="white" stack-label>
+            <q-input filled v-model="name" label="Name" bg-color="white" stack-label @change="onUpdateName(name)">
               <template v-slot:prepend>
                 <q-icon name="person" />
               </template>
